@@ -1,4 +1,5 @@
-import { decide, setMaze, manualMove } from '../src/bot';
+import { decide, setMaze, manualMove } from '../src/bot.js'; 
+
 
 describe('Bot intelligence tests', () => {
 
