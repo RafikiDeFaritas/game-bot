@@ -17,10 +17,6 @@ jobs:
     - run: npm install
     - run: npm test
 
-    - run: |
-        docker build -t my-bot .
-        docker run -d -p 3000:3000 my-bot
-
     - name: Trigger Render Deploy via Deploy Hook
       if: success() 
       run: |
