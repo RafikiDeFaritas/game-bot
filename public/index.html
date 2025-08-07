@@ -3,23 +3,122 @@
 <head>
   <meta charset="UTF-8" />
   <title>Contrôle du Bot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: radial-gradient(circle at center, #0f0c29, #302b63, #24243e);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Press Start 2P', cursive;
+      color: #fff;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 2rem;
+      color: #ffcc00;
+      text-shadow: 0 0 5px #ffcc00, 0 0 10px #ff6600;
+    }
+
+    .controller {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .row {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .arcade-button {
+      background: #ff004d;
+      border: 4px solid #fff;
+      color: white;
+      font-size: 1rem;
+      padding: 1.2rem 1.4rem;
+      border-radius: 100px;
+      cursor: pointer;
+      box-shadow: 0 5px #b30035;
+      transition: all 0.1s ease;
+      position: relative;
+    }
+
+    .arcade-button:active,
+    .arcade-button.active {
+      transform: translateY(4px);
+      box-shadow: 0 1px #b30035;
+    }
+
+    .arcade-button:hover {
+      background-color: #ff3366;
+    }
+
+    .collect {
+      background: #00ffcc;
+      border-color: #fff;
+      color: #000;
+      box-shadow: 0 5px #009977;
+    }
+
+    .collect:active,
+    .collect.active {
+      transform: translateY(4px);
+      box-shadow: 0 1px #009977;
+    }
+  </style>
 </head>
 <body>
-  <h1>Contrôle manuel du bot</h1>
+  <h1>🎮 Contrôle Arcade du Bot</h1>
 
-  <div style="display: flex; flex-direction: column; align-items: center;">
-    <button onclick="send('UP')">⬆️ UP</button>
-    <div>
-      <button onclick="send('LEFT')">⬅️ LEFT</button>
-      <button onclick="send('STAY')">⏸ STAY</button>
-      <button onclick="send('RIGHT')">➡️ RIGHT</button>
+  <div class="controller">
+    <button class="arcade-button" id="UP" onclick="send('UP')">⬆️ UP</button>
+    <div class="row">
+      <button class="arcade-button" id="LEFT" onclick="send('LEFT')">⬅️ LEFT</button>
+      <button class="arcade-button" id="STAY" onclick="send('STAY')">⏸ STAY</button>
+      <button class="arcade-button" id="RIGHT" onclick="send('RIGHT')">➡️ RIGHT</button>
     </div>
-    <button onclick="send('DOWN')">⬇️ DOWN</button>
-    <br />
-    <button onclick="sendAction('COLLECT')">🪙 COLLECT</button>
+    <button class="arcade-button" id="DOWN" onclick="send('DOWN')">⬇️ DOWN</button>
+    <button class="arcade-button collect" id="COLLECT" onclick="sendAction('COLLECT')">🪙 COLLECT</button>
   </div>
 
   <script>
+    const buttonMap = {
+      ArrowUp: 'UP',
+      ArrowDown: 'DOWN',
+      ArrowLeft: 'LEFT',
+      ArrowRight: 'RIGHT',
+      ' ': 'COLLECT'
+    };
+
+    document.addEventListener('keydown', (event) => {
+      const id = buttonMap[event.key];
+      if (id) {
+        event.preventDefault(); // éviter le scroll pour espace ou flèches
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.add('active');
+
+        if (id === 'COLLECT') {
+          sendAction('COLLECT');
+        } else {
+          send(id);
+        }
+      }
+    });
+
+    document.addEventListener('keyup', (event) => {
+      const id = buttonMap[event.key];
+      if (id) {
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.remove('active');
+      }
+    });
+
     async function send(move) {
       const response = await fetch('/manual-action', {
         method: 'POST',
@@ -27,7 +126,7 @@
         body: JSON.stringify({ move, action: 'NONE' })
       });
       const data = await response.json();
-      console.log('Réponse du bot :', data);
+      console.log('[Move]', data);
     }
 
     async function sendAction(action) {
@@ -37,53 +136,8 @@
         body: JSON.stringify({ move: 'STAY', action })
       });
       const data = await response.json();
-      console.log('Réponse du bot :', data);
+      console.log('[Action]', data);
     }
   </script>
 </body>
-
-<script>
-  document.addEventListener('keydown', (event) => {
-    switch (event.key) {
-      case 'ArrowUp':
-        send('UP');
-        break;
-      case 'ArrowDown':
-        send('DOWN');
-        break;
-      case 'ArrowLeft':
-        send('LEFT');
-        break;
-      case 'ArrowRight':
-        send('RIGHT');
-        break;
-      case ' ': // espace
-        event.preventDefault(); // évite le scroll
-        sendAction('COLLECT');
-        break;
-    }
-  });
-
-  async function send(move) {
-    const res = await fetch('/manual-action', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ move, action: 'NONE' })
-    });
-    const data = await res.json();
-    console.log('[Clavier] Move:', data);
-  }
-
-  async function sendAction(action) {
-    const res = await fetch('/manual-action', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ move: 'STAY', action })
-    });
-    const data = await res.json();
-    console.log('[Clavier] Action:', data);
-  }
-</script>
-
-
 </html>
